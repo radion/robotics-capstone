@@ -23,11 +23,11 @@ def callback(data):
     print maxItem
 
     twist = Twist()
-    if maxItem[0] < 0.2:
-        twist.angular.z = -1 * maxItem[0] / 10
+    if maxItem[0] > 0.2:
+        twist.angular.z = -2* maxItem[0]
         pub.publish(twist)
-    elif maxItem[0] > -0.2:
-        twist.angular.z = -1 * maxItem[0] / 10
+    elif maxItem[0] < -0.2:
+        twist.angular.z = -2 * maxItem[0]
         pub.publish(twist)
     # # Floor threshold
     # yThreshold = 0.3003;
@@ -71,7 +71,7 @@ def callback(data):
 def listener():
     # Reading x, y & z data from the Kinect Sensor
     rospy.init_node('listener', anonymous=True)
-    rospy.Subscriber("/camera/depth/points", PointCloud2, callback)
+    rospy.Subscriber("/camera/depth_registered/points", PointCloud2, callback)
     rospy.spin()
 
 if __name__ == '__main__':
