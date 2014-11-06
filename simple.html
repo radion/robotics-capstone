@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<script src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script src="roslib.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+<script>
+  // Connecting to ROS
+  // -----------------
+  var ros = new ROSLIB.Ros();
+
+  // If there is an error on the backend, an 'error' emit will be emitted.
+  ros.on('error', function(error) {
+    document.getElementById('connecting').style.display = 'none';
+    document.getElementById('connected').style.display = 'none';
+    document.getElementById('closed').style.display = 'none';
+    document.getElementById('error').style.display = 'inline';
+    console.log(error);
+  });
+
+  // Find out exactly when we made a connection.
+  ros.on('connection', function() {
+    console.log('Connection made!');
+    document.getElementById('connecting').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
+    document.getElementById('closed').style.display = 'none';
+    document.getElementById('connected').style.display = 'inline';
+  });
+
+  ros.on('close', function() {
+    console.log('Connection closed.');
+    document.getElementById('connecting').style.display = 'none';
+    document.getElementById('connected').style.display = 'none';
+    document.getElementById('closed').style.display = 'inline';
+  });
+
+  // Create a connection to the rosbridge WebSocket server.
+  ros.connect('ws://softshell.cs.washington.edu:9090');
+</script>
+</head>
+
+<body>
+  <h1>Simple roslib Example</h1>
+  <p>Run the following commands in the terminal then refresh this page. Check the JavaScript
+    console for the output.</p>
+  <ol>
+    ssh turtlebot@softshell
+    <li><tt>roscore</tt></li>
+    <li><tt>roslaunch turtlebot_bringup minimal.launch</tt></li>
+    <li><tt>roslaunch rosbridge_server rosbridge_websocket.launch</tt></li>
+  </ol>
+  <button id="forward">Forward</button>
+  <button id="backward">Backward</button>
+  <br>
+   <button id="left">Left</button>
+  <button id="right">Right</button>
+  <div id="statusIndicator">
+    <p id="connecting">
+      Connecting to rosbridge...
+    </p>
+    <p id="connected" style="color:#00D600; display:none">
+      Connected
+    </p>
+    <p id="error" style="color:#FF0000; display:none">
+      Error in the backend!
+    </p>
+    <p id="closed" style="display:none">
+      Connection closed.
+    </p>
+  </div>
+</body>
+</html>
+
+<script>
+
+$(document).keydown(function(e) {
+    switch(e.which) {
+        case 37: // left
+        moveRobot(0, 0.7);
+        break;
+
+        case 38: // up
+        moveRobot(0.3, 0.0);
+        break;
+
+        case 39: // right
+        moveRobot(0, -0.7);
+        break;
+
+        case 40: // down
+        moveRobot(-0.3, 0.0);
+        break;
+
+        default: return; // exit this handler for other keys
+    }
+    e.preventDefault(); // prevent the default action (scroll / move caret)
+});
+
+var interval;
+$('#forward').on({
+  mousedown : function () {
+    var el = $(this);
+    el.val(parseInt(el.val(), 10) + 1);
+    interval = window.setInterval(function(){
+       moveRobot(0.1, 0);
+      el.val(parseInt(el.val(), 10) + 1);
+    }, 200);
+  },
+  mouseup : function () {
+    window.clearInterval(interval);
+  }
+});
+
+var interval2;
+$('#backward').on({
+  mousedown : function () {
+    var el = $(this);
+    el.val(parseInt(el.val(), 10) + 1);
+    interval2 = window.setInterval(function(){
+       moveRobot(-0.1, 0);
+      el.val(parseInt(el.val(), 10) + 1);
+    }, 200);
+  },
+  mouseup : function () {
+    window.clearInterval(interval2);
+  }
+});
+
+var interval3;
+$('#left').on({
+  mousedown : function () {
+    var el = $(this);
+    el.val(parseInt(el.val(), 10) + 1);
+    interval3 = window.setInterval(function(){
+       moveRobot(0, 0.5);
+      el.val(parseInt(el.val(), 10) + 1);
+    }, 200);
+  },
+  mouseup : function () {
+    window.clearInterval(interval3);
+  }
+});
+
+var interval4;
+$('#right').on({
+  mousedown : function () {
+    var el = $(this);
+    el.val(parseInt(el.val(), 10) + 1);
+    interval4 = window.setInterval(function(){
+       moveRobot(0, -0.5);
+      el.val(parseInt(el.val(), 10) + 1);
+    }, 200);
+  },
+  mouseup : function () {
+    window.clearInterval(interval4);
+  }
+});
+
+function moveRobot(xDir, rotate) {
+  var cmdVel = new ROSLIB.Topic({
+    ros : ros,
+    name : '/mobile_base/commands/velocity',
+    messageType : 'geometry_msgs/Twist'
+  });
+  var twist = new ROSLIB.Message({
+    linear : {
+      x : xDir,
+      y : 0.0,
+      z : 0.0
+    },
+    angular : {
+      x : rotate,
+      y : rotate,
+      z : rotate
+    }
+  });
+  cmdVel.publish(twist);
+}
+</script>
