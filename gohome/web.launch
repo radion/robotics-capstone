@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="/beginner_tutorials" type="go_home.py" name="go_home_node" />
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+</launch>
